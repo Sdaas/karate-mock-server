@@ -1,10 +1,5 @@
 [
   {
-    "uri" : "/teapot",
-    "response" : "I am a teapot",
-    "status" : 419
-  },
-  {
     "uri" : "/hello",
     "response" : "hello world",
     "status" : 200

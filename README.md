@@ -12,8 +12,15 @@ Run the client to exercise the mock-server
 ```
 java -jar karate.jar client.feature
 ```
+To see the current rules
+```
+curl -v http://localhost:9000/_rules | jsonpp
+```
+To see execution history
+```
+curl -v http://localhost:9000/_history | jsonpp
+```
 
-brew install jsonpp <- Json pretty printing
 
 # References
 
