@@ -13,6 +13,8 @@ Run the client to exercise the mock-server
 java -jar karate.jar client.feature
 ```
 
+brew install jsonpp <- Json pretty printing
+
 # References
 
 * [Karate](https://github.com/intuit/karate)
