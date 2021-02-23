@@ -1,15 +1,32 @@
 [
   {
-    "uri" : "/hello",
-    "response" : "hello world",
-    "status" : 200
+    "request": {
+      "method" : "get",
+      "uri" : "/hello"
+    },
+    "response" : {
+      "headers": {
+        "Content-Type": "application/txt"
+      },
+      "body" : "hello world",
+      "status" : 200
+    }
   },
   {
-    "uri" : "/person/1",
-    "response" : {
-      "name" : "Homer Simpson",
-      "pets" : ["Snowball", "Santas Little Helper"]
+    "request": {
+      "method" : "get",
+      "uri" : "/person/1"
     },
-    "status" : 200
+    "response" : {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body" : {
+        "name" : "Homer Simpson",
+        "pets" : ["Snowball", "Santas Little Helper"]
+      },
+      "status" : 200,
+      "delay" : 5000
+    }
   }
 ]
