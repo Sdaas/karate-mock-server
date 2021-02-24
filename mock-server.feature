@@ -14,7 +14,7 @@ Feature: Mock Service
       for(var i=0; i<data.length; i++){
         id = id + 1
         var key = id
-        var v1 = data[i].request.method.toUpperCase() + '_' + data[i].request.uri
+        var v1 = data[i].request.method.toUpperCase() + '_' + data[i].request.uri.toUpperCase()
         rules[key] = v1
         ruleDetails[v1] = data[i]
       }
@@ -80,7 +80,8 @@ Feature: Mock Service
     * print '*** got dynamic call ***'
     * print 'Uri = ' + requestUri
     # Create the response ...
-    * def key = requestMethod + '_' + requestUri
+    * def key = requestMethod.toUpperCase() + '_' + requestUri.toUpperCase()
+    * print key
     * def val = ruleDetails[key]
     * def response = val ? val.response.body : "I have no idea what you are talking about"
     * def responseHeaders = val ? val.response.headers : {}

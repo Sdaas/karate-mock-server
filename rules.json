@@ -25,8 +25,36 @@
         "name" : "Homer Simpson",
         "pets" : ["Snowball", "Santas Little Helper"]
       },
+      "status" : 200
+    }
+  },
+  {
+    "request": {
+      "method" : "post",
+      "uri" : "/person"
+    },
+    "response" : {
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body" : {
+        "id" : 12345
+      },
+      "status" : 201
+    }
+  },
+  {
+    "request": {
+      "method" : "get",
+      "uri" : "/slow"
+    },
+    "response" : {
+      "headers": {
+        "Content-Type": "application/txt"
+      },
+      "body" : "This is a slow response",
       "status" : 200,
-      "delay" : 5000
+      "delay" : 10000
     }
   }
 ]
