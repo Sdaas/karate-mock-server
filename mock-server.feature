@@ -3,17 +3,17 @@ Feature: Mock Service
   # This is a mock server. See  https://github.com/intuit/karate/tree/master/karate-netty
 
   Background:
-    * def tempRuleList = read('rules.json')
-    * def id = 0
+    * def id = 1
     * def history = []
+    * def staticRuleList = read('rules.json')
+    * def nextId = function(){ return ~~id++ }
     * def createRules =
     """
     function(data){
       var rules = {}
       var ruleDetails = {}
       for(var i=0; i<data.length; i++){
-        id = id + 1
-        var key = id
+        var key = nextId()
         var v1 = data[i].request.method.toUpperCase() + '_' + data[i].request.uri.toUpperCase()
         rules[key] = v1
         ruleDetails[v1] = data[i]
@@ -21,7 +21,7 @@ Feature: Mock Service
       return { "rules" : rules, "ruleDetails" : ruleDetails }
     }
     """
-    * def temp = createRules(tempRuleList)
+    * def temp = createRules(staticRuleList)
     # Key = id, value = method_uri
     * def rules = temp.rules
     # Key = method_uri, value = rules
@@ -44,7 +44,7 @@ Feature: Mock Service
     * def response = createRuleList(rules,ruleDetails)
 
   # Get a rule specified by its Id
-  Scenario: pathMatches('/_rule/{id}')
+  Scenario: pathMatches('/_rule/{id}') && methodIs('get')
     * def temp = createRuleList(rules,ruleDetails)
     * def response = temp[pathParams.id]
     * print response
@@ -53,18 +53,17 @@ Feature: Mock Service
   # Create a new rule
   # TODO Needs work
   Scenario: pathMatches('/_rule') && methodIs('post')
-    * def id = request.uri
-    * def rule =
-    """
-    {
-      uri : '#(request.uri)',
-      response : '#(request.response)',
-      status : '#(request.status)'
-    }
-    """
-    * ruleMap[id] = rule
-    * print ruleMap
-    * def response = "OK"
+    # The rule is specified in the request body
+    * def rule = request
+    # use the next Id for this rule
+    * def id = nextId()
+    # TODO Refactor for DRY
+    * def v1 = rule.request.method.toUpperCase() + '_' + rule.request.uri.toUpperCase()
+    * rules[id] = v1
+    * ruleDetails[v1] = rule
+    # create the response
+    * def responseStatus = 201
+    * def response = id
 
   # Get the call history
   Scenario: pathMatches('/_history')
