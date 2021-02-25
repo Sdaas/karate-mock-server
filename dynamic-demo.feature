@@ -4,7 +4,7 @@ Feature: Dynamically creating rules and executing them
     * url 'http://localhost:9000'
 
   Scenario: Create a rule, execute it, and then finally delete it
-    # When GET /motto is called, the server shoudl respond with veritas vos liberabit
+    # The rule is ... When GET /motto is called, THEN server should respond with veritas vos liberabit
     * def theMethod = 'get'
     * def theUri = '/motto'
     * def theResponse = 'Veritas vos Liberabit'

@@ -46,10 +46,22 @@ Feature: Demo of viewing and executing static rules
     And   print response
     And   match response[*].uri contains '/atlantis'
 
-  # Example scenario to get list of all the rules
-  Scenario:
+  Scenario: Get all the rules
     Given path '/_rules'
     When method GET
     Then status 200
     And header Content-Type = 'application/json'
+    And match response == '#[]'
+    * def req = response[0].request
+    * def resp = response[0].response
+    And match req == { method : '#string', uri : '#string' }
+    And match resp == { headers  : '##object', body : '#present', status : '#number' }
 
+  Scenario: Get the details of a particular rule
+    Given path '/_rule/1'
+    When method GET
+    Then status 200
+    * def res = response.response
+    And match res.body == "hello world"
+    And match res.status == 200
+    And match res.headers == { "Content-Type": "application/txt" }

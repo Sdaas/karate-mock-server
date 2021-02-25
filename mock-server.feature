@@ -2,66 +2,66 @@ Feature: Mock Service
 
   # This is a mock server. See  https://github.com/intuit/karate/tree/master/karate-netty
 
-  Background:
+  Background: This is executed once when the mock server starts up
     * def id = 1
+    # Key = id, value = rule
+    * def ruleMap = {}
+    # Call history request
     * def history = []
-    * def staticRuleList = read('rules.json')
     * def nextId = function(){ return ~~id++ }
-    * def createRules =
+    * def cleanup =
+    """
+    function(data) {
+      data.request.method = data.request.method.toUpperCase()
+      data.request.uri = data.request.uri.toUpperCase()
+      return data
+    }
+    """
+    * def addRule =
+    """
+    function(data) {
+      var key = nextId().toString()
+      cleanup(data)
+      data.id = key
+      ruleMap[key] = data
+      return key
+    }
+    """
+    * def createRuleMap =
     """
     function(data){
-      var rules = {}
-      var ruleDetails = {}
       for(var i=0; i<data.length; i++){
-        var key = nextId()
-        var v1 = data[i].request.method.toUpperCase() + '_' + data[i].request.uri.toUpperCase()
-        rules[key] = v1
-        ruleDetails[v1] = data[i]
+        addRule(data[i])
       }
-      return { "rules" : rules, "ruleDetails" : ruleDetails }
     }
     """
-    * def temp = createRules(staticRuleList)
-    # Key = id, value = method_uri
-    * def rules = temp.rules
-    # Key = method_uri, value = rules
-    * def ruleDetails = temp.ruleDetails
-    * def createRuleList =
-    """
-    function(rules, ruleDetails) {
-      var out = {}
-      for(var k in rules) {
-        var v1 = rules[k]
-        var v2 = ruleDetails[v1]
-        out[k]=v2
-      }
-      return out
-    }
-    """
+    * def staticRuleList = read('rules.json')
+    * createRuleMap(staticRuleList)
+
 
   # Get list of the rules along with their ids
-  Scenario: pathMatches('/_rules')
-    * def response = createRuleList(rules,ruleDetails)
+  Scenario: pathMatches('/_rules') && methodIs('get')
+    * def convertToList =
+    """
+    function(map) {
+      var list = []
+      for (var key in map) {
+        list[key] = map[key]
+      }
+      return list
+    }
+    """
+    * def response = convertToList(ruleMap)
 
   # Get a rule specified by its Id
   Scenario: pathMatches('/_rule/{id}') && methodIs('get')
-    * def temp = createRuleList(rules,ruleDetails)
-    * def response = temp[pathParams.id]
-    * print response
+    * def response = ruleMap[pathParams.id]
     * def responseStatus = response ? 200 : 404
 
   # Create a new rule
-  # TODO Needs work
   Scenario: pathMatches('/_rule') && methodIs('post')
     # The rule is specified in the request body
-    * def rule = request
-    # use the next Id for this rule
-    * def id = nextId()
-    # TODO Refactor for DRY
-    * def v1 = rule.request.method.toUpperCase() + '_' + rule.request.uri.toUpperCase()
-    * rules[id] = v1
-    * ruleDetails[v1] = rule
-    # create the response
+    * def id = addRule(request)
     * def responseStatus = 201
     * def response = id
 
@@ -78,11 +78,26 @@ Feature: Mock Service
     # Which uri is being requested ?
     * print '*** got dynamic call ***'
     * print 'Uri = ' + requestUri
-    # Create the response ...
-    * def key = requestMethod.toUpperCase() + '_' + requestUri.toUpperCase()
-    * print key
-    * def val = ruleDetails[key]
-    * def response = val ? val.response.body : "I have no idea what you are talking about"
-    * def responseHeaders = val ? val.response.headers : {}
-    * def responseStatus = val ? val.response.status : 404
+    # Match the rule in the map
+    * def findInRuleMap =
+    """
+    function(method, uri){
+      method = method.toUpperCase()
+      uri = uri.toUpperCase()
+      for (var key in ruleMap) {
+        var rule = ruleMap[key]
+        if( rule.request.method === method && rule.request.uri === uri ) {
+            return rule.response
+        }
+      }
+      return null
+    }
+    """
+    # Create the response
+    * def r = findInRuleMap( requestMethod, requestUri )
+    * def response = r ? r.body : "I have no idea what you are talking about"
+    * def responseHeaders = r ? r.headers : {}
+    * def responseStatus = r ? r.status : 404
+    * def responseDelay = r ? (r.delay ? r.delay : 0 ) : 0
     # add delays if needed
+
